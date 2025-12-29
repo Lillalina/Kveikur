@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kveikur – ráðgjafi í útikennslu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* Almenn grunngerð */
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7f9fb;
+      color: #333333;
+    }
+
+    .page-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 80px;
+      box-sizing: border-box;
+    }
+
+    .hero {
+      max-width: 800px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #2ecc71, #16a085);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      overflow: hidden;
+    }
+
+    .hero-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1b4d3e;
+      margin-bottom: 8px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    .hero-button {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: #2ecc71;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    .hero-button:hover {
+      background: #29b765;
+    }
+
+    .info-section {
+      max-width: 900px;
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .info-card-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1b4d3e;
+    }
+
+    .info-card-text {
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* Kveikur widget – spjallgluggi neðst í hægra horni */
+    #kveikur-widget {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 360px;
+      max-width: calc(100vw - 32px);
+      max-height: 70vh;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: inherit;
+      z-index: 9999;
+      transform: translateY(120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #kveikur-widget.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #kveikur-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(120deg, #2ecc71, #16a085);
+      color: #ffffff;
+    }
+
+    #kveikur-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #ffffff;
+      padding: 2px;
+      object-fit: contain;
+    }
+
+    #kveikur-title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    #kveikur-subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    #kveikur-close {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+    }
+
+    #kveikur-chat-window {
+      flex: 1;
+      padding: 10px 12px;
+      overflow-y: auto;
+      background: #f7f9fb;
+    }
+
+    .kveikur-message {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .kveikur-bot {
+      justify-content: flex-start;
+    }
+
+    .kveikur-user {
+      justify-content: flex-end;
+    }
+
+    .kveikur-bubble {
+      max-width: 80%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .kveikur-bot .kveikur-bubble {
+      background: #e8f8f0;
+      color: #1b4d3e;
+      border-bottom-left-radius: 2px;
+    }
+
+    .kveikur-user .kveikur-bubble {
+      background: #2ecc71;
+      color: #ffffff;
+      border-bottom-right-radius: 2px;
+    }
+
+    #kveikur-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      border-top: 1px solid #e1e5ea;
+      background: #ffffff;
+    }
+
+    #kveikur-input {
+      flex: 1;
+      resize: none;
+      min-height: 40px;
+      max-height: 80px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      border: 1px solid #d0d7e2;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    #kveikur-send {
+      background: #2ecc71;
+      border: none;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    #kveikur-send:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    @media (max-width: 600px) {
+      #kveikur-widget {
+        right: 8px;
+        left: 8px;
+        width: auto;
+        max-height: 70vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="hero">
+      <div class="hero-logo">
+        <!-- Settu 3D-myndina þína hér ef þú vilt -->
+        <img src="PATH/TO/KVEIKUR_IMAGE.png" alt="Kveikur" />
+      </div>
+      <div class="hero-title">Kveikur – ráðgjafi í útikennslu</div>
+      <div class="hero-subtitle">
+        Spjallmenni sem hjálpar þér að hanna staðartengdar útikennsluáætlanir fyrir leikskóla og grunnskóla.
+      </div>
+      <button class="hero-button" id="open-kveikur">Opna spjallglugga</button>
+    </div>
+
+    <div class="info-section">
+      <div class="info-card">
+        <div class="info-card-title">Útikennsla</div>
+        <div class="info-card-text">
+          Kveikur hjálpar þér að nýta skógarreiti, fjöru, skólalóð og aðra staði í nærumhverfi til markvissrar útikennslu.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Staðartengd menntun</div>
+        <div class="info-card-text">
+          Hann byggir á hugmyndum um staðartengda útimenntun – tengir náttúru, sögu og samfélag við nám.
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-title">Nútíma áherslur</div>
+        <div class="info-card-text">
+          Hönnunarhugsun, gervigreindarlæsi, blue mind, sjálfbærni og grenndarvitund eru innbyggð í svör Kveiks.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kveikur spjallglugginn -->
+  <div id="kveikur-widget">
+    <div id="kveikur-header">
+      <img src="PATH/TO/KVEIKUR_IMAGE.png" alt="Kveikur" id="kveikur-avatar">
+      <div>
+        <div id="kveikur-title">Kveikur – útikennsluráðgjafi</div>
+        <div id="kveikur-subtitle">Segðu mér frá bekk, stað og veðri</div>
+      </div>
+      <button id="kveikur-close" aria-label="Loka spjalli">&times;</button>
+    </div>
+
+    <div id="kveikur-chat-window">
+      <div class="kveikur-message kveikur-bot">
+        <div class="kveikur-bubble">
+Hæ, ég heiti Kveikur. Ég hjálpa þér að hanna útikennsluáætlanir.
+
+Segðu mér:
+- aldur eða bekk (t.d. 2. bekkur eða leikskóli 4–5 ára),
+- fjölda nemenda,
+- stað (fjara, skógarlundur, skólalóð…),
+- veður og tímalengd,
+- hvaða áherslu þú vilt (t.d. staðartengd útimenntun, hönnunarhugsun, gervigreindarlæsi, blue mind).
+
+Dæmi:
+„4. bekkur, 20 nemendur, skógarjaðar við skólann, 60 mínútur, þurrt, áhersla á staðartengda útimenntun og hönnunarhugsun.“
+        </div>
+      </div>
+    </div>
+
+    <form id="kveikur-input-area">
+      <textarea id="kveikur-input" placeholder="Skrifaðu beiðni til Kveiks hér..."></textarea>
+      <button type="submit" id="kveikur-send">Senda</button>
+    </form>
+  </div>
+
+  <script>
+    (function () {
+      const widget = document.getElementById("kveikur-widget");
+      const openBtn = document.getElementById("open-kveikur");
+      const closeBtn = document.getElementById("kveikur-close");
+      const chatWindow = document.getElementById("kveikur-chat-window");
+      const form = document.getElementById("kveikur-input-area");
+      const input = document.getElementById("kveikur-input");
+      const sendButton = document.getElementById("kveikur-send");
+
+      function openWidget() {
+        widget.classList.add("open");
+      }
+
+      function closeWidget() {
+        widget.classList.remove("open");
+      }
+
+      openBtn.addEventListener("click", openWidget);
+      closeBtn.addEventListener("click", closeWidget);
+
+      function addMessage(text, role) {
+        const msg = document.createElement("div");
+        msg.className = "kveikur-message " + (role === "user" ? "kveikur-user" : "kveikur-bot");
+
+        const bubble = document.createElement("div");
+        bubble.className = "kveikur-bubble";
+        bubble.textContent = text;
+
+        msg.appendChild(bubble);
+        chatWindow.appendChild(msg);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      }
+
+      async function sendToKveikur(userText) {
+        sendButton.disabled = true;
+
+        try {
+          const systemPrompt = `
+Þú heitir Kveikur. Þú ert hlýlegur, fróðlegur og hvetjandi útikennsluráðgjafi sem hjálpar kennurum að búa til nothæfar, staðartengdar útikennsluáætlanir á öllum skólastigum: leikskóla, 1.–4. bekk, 5.–7. bekk og unglingastigi.
+
+Hlutverk:
+- Nýta gögn um staðartengda útimenntun, útikennslu á miðstigi, Aðalnámskrá grunnskóla, útikennsluvefi, blue mind, hönnunarhugsun og gervigreindarlæsi.
+- Hanna áætlanir sem taka mið af: aldri/árgangi, fjölda, stað, veðri, tíma, námssviðum og áherslum (t.d. hönnunarhugsun, gervigreindarlæsi, blue mind, sjálfbærni, grenndarvitund).
+
+Aldurssvið:
+- Leikskóli: skynjun, leikur, stuttar ferðir, einföld verkefni.
+- 1.–4. bekkur: athuganir, teikna–skrá–lýsa, orðaforði.
+- 5.–7. bekkur: rannsóknir, mælingar, hönnunarhugsun í hópum.
+- Unglingastig: gagnrýnin hugsun, vettvangsverkefni, gagnagreining og miðlun.
+
+Svör:
+1. Byrjaðu á 3–5 setningum um markmið kennslunnar, hvaða grunnþættir menntunar eru í fókus og hvaða námssvið.
+2. Skiptu svo í kafla:
+   - Nemendahópur og samhengi.
+   - Undirbúningur kennara.
+   - Kennsluáætlun í skrefum (Upphitun – Aðalverkefni – Ígrundun).
+   - Öryggi.
+   - Möguleg framhaldsvinna inni.
+   - Stutt tenging við hæfniviðmið (í nokkrum punktum).
+3. Aðlagaðu að aldursstigi, stað, veðri og áherslum sem kennari nefnir.
+4. Vertu hnitmiðaður, hagnýtur og framkvæmanlegur.
+5. Ef þú fyllir í eyður með almennri faglegri þekkingu (en ekki beinum gögnum), segðu stutt frá því.
+          `.trim();
+
+          const response = await fetch("/api/kveikur-chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              systemPrompt: systemPrompt,
+              userMessage: userText
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Villa í samskiptum við Kveik.");
+          }
+
+          const data = await response.json();
+          addMessage(data.reply || "Fékk tómt svar frá bakenda.", "bot");
+        } catch (err) {
+          console.error(err);
+          addMessage("Úps, eitthvað klikkaði hjá mér. Reyndu aftur aðeins seinna.", "bot");
+        } finally {
+          sendButton.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage(text, "user");
+        input.value = "";
+        sendToKveikur(text);
+      });
+    })();
+  </script>
+</body>
+</html>
